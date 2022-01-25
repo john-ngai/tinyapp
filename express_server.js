@@ -1,8 +1,16 @@
+// Timer = 18 + 37 min
+
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const port = 8080;
 
 app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({extended: true}));
+
+const generateRandomString = () => {
+  return Math.random().toString(36).slice(2, 8);
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -10,7 +18,7 @@ const urlDatabase = {
 }
 
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  res.send('Hello World!');
 });
 
 app.get('/urls.json', (req, res) => {
@@ -22,9 +30,18 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
+});
+
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send('Ok');
 });
 
 app.listen(port, () => {
