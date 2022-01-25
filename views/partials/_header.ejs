@@ -4,11 +4,27 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
+    
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        
+        <!-- The Login Form - START -->
+        <form action="/login" method="POST" class="form-inline" >
+          
+          <!-- 1. A single text input with name="username" -->
+          <input type="text" name="username" class="form-control mr-sm-2" placeholder="username">
+          
+          <!-- 2. A submit button to submit the form -->
+          <button type="submit" class="btn btn-light">Sign In</button>
+          
+          <!-- 3. Users will type in any username into this form in order to "sign in" for now. -->
+        </form>
+        <!-- The Login Form - END -->
+
       </div>
     </div>
+  
   </nav>
 </header>
