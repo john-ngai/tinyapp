@@ -1,12 +1,12 @@
-let min = 45 + 27;
-
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const app = express();
 const port = 8080;
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 const generateRandomString = () => {
   return Math.random().toString(36).slice(2, 8);
@@ -63,6 +63,17 @@ app.post('/urls/:shortURL', (req, res) => {
   res.redirect('/urls');
 });
 
+app.post('/login', (req, res) => {
+  const signinID = req.body.username;
+  res.cookie('username', signinID);
+  console.log(req.cookies);
+  res.redirect('/urls');
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+// _header.ejs
+// <form action="/login" method="POST" class="form-inline" >
+// <input type="text" name="username" class="form-control mr-sm-2" placeholder="username">
