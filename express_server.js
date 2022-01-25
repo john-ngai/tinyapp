@@ -44,7 +44,8 @@ app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   const templateVars = { shortURL: shortURL, longURL: longURL };
-  res.redirect(`/urls/${shortURL}`);
+  // res.redirect(`/urls/${shortURL}`);
+  res.render("urls_show", templateVars);
 });
 
 app.listen(port, () => {
