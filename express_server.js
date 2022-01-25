@@ -1,5 +1,3 @@
-// Timer = 18 + 37 min
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -35,13 +33,18 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  res.render("urls_show", templateVars);
+  // const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  // res.render("urls_show", templateVars);
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('Ok');
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
+  const templateVars = { shortURL: shortURL, longURL: longURL };
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.listen(port, () => {
