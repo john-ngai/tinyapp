@@ -10,10 +10,6 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-const generateRandomString = () => {
-  return Math.random().toString(36).slice(2, 8);
-}
-
 const users = {
   'userRandomID': {
     id: 'userRandomID',
@@ -37,15 +33,17 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
+  const userIDCookie = req.cookies.user_id;
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies['username']
+    user: users[userIDCookie] ? users[userIDCookie].email : '',
   };
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies['username'] };
+  const userIDCookie = req.cookies.user_id;
+  const templateVars = { user: users[userIDCookie] ? users[userIDCookie].email : '' };
   res.render('urls_new', templateVars);
 });
 
@@ -55,13 +53,14 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  const shortURL = generateRandomString();
+  const shortURL = hexNumGenerator(6);
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
+  const userIDCookie = req.cookies.user_id;
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
-    username: req.cookies['username'],
+    user: users[userIDCookie] ? users[userIDCookie].email : '',
   };
   res.render("urls_show", templateVars);
 });
@@ -75,10 +74,11 @@ app.post('/urls/:url/delete', (req, res) => {
 app.get('/urls/:url/edit', (req, res) => {
   const shortURL = req.params.url;
   const longURL = urlDatabase[shortURL];
+  const userIDCookie = req.cookies.user_id;
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
-    username: req.cookies['username'],
+    user: users[userIDCookie] ? users[userIDCookie].email : '',
   };
   res.render("urls_show", templateVars);
 });
@@ -109,11 +109,13 @@ app.post('/register', (req, res) => {
   const newUserID = hexNumGenerator(6);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
-  users.newUserID = {
+  
+  users[newUserID] = {
     id: newUserID,
     email: newEmail,
     password: newPassword,
   }
+
   res.cookie('user_id', newUserID);
   res.redirect('/urls');
 });
