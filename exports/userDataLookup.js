@@ -39,4 +39,15 @@ const passwordLookup = (users, email, password) => {
   return false;
 };
 
-module.exports = { emailLookup, passwordLookup };
+// Helper function for express_server.js
+// Return the matching user id for an email inside the users object.
+const userIDLookup = (users, email) => {
+  const userIDs = Object.keys(users);
+  for (const user of userIDs) {
+    if (users[user]['email'] === email) {
+      return user;
+    }
+  }
+};
+
+module.exports = { emailLookup, passwordLookup, userIDLookup };
