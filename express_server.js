@@ -4,8 +4,13 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const port = 8080;
 
+// hexNumGenerator(digits);
 const { hexNumGenerator } = require('./exports/hexNumGenerator');
-const { emailLookup } = require('./exports/emailLookup');
+
+// emailLookup(users, email);
+// passwordLookup(users, email, password);
+// userIDLookup(users, email);
+const { emailLookup, passwordLookup, userIDLookup } = require('./exports/userDataLookup');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -92,13 +97,20 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const signinID = req.body.username;
-  res.cookie('username', signinID);
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!emailLookup(users, email)) {
+    return res.status(403).send(`ERROR (403): ${email} is not a registered email.`);
+  }
+  if (!passwordLookup(users, email, password)) {
+    return res.status(403).send('ERROR (403): Incorrect password. Please try again.');
+  }
+  const id = userIDLookup(users, email);
+  res.cookie('user_id', id);
   res.redirect('/urls');
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
@@ -113,7 +125,7 @@ app.post('/register', (req, res) => {
   const newPassword = req.body.password;
   // If the email or password field is empty, return a 400 status code error message.
   if (newEmail === '' || newPassword === '') {
-    return res.status(400).send('ERROR (400): Email and/or password field was empty.');
+    return res.status(400).send('ERROR (400): Empty email and/or password field.');
   }
   // If the email is already registered, return a 400 status code error message.
   if (emailLookup(users, newEmail)) {
