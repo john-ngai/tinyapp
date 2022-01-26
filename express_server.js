@@ -5,6 +5,7 @@ const app = express();
 const port = 8080;
 
 const { hexNumGenerator } = require('./exports/hexNumGenerator');
+const { emailLookup } = require('./exports/emailLookup');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -98,6 +99,7 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
@@ -109,17 +111,23 @@ app.post('/register', (req, res) => {
   const newUserID = hexNumGenerator(6);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
-  
+  // If the email or password field is empty, return a 400 status code error message.
+  if (newEmail === '' || newPassword === '') {
+    return res.status(400).send('ERROR (400): Email and/or password field was empty.');
+  }
+  // If the email is already registered, return a 400 status code error message.
+  if (emailLookup(users, newEmail)) {
+    return res.status(400).send(`ERROR (400): ${newEmail} is already in use.`);
+  }
   users[newUserID] = {
     id: newUserID,
     email: newEmail,
     password: newPassword,
   }
-
   res.cookie('user_id', newUserID);
   res.redirect('/urls');
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Example app listening on http://localhost:${port}/`);
 });
