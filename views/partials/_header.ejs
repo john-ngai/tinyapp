@@ -11,13 +11,14 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         
         <!-- Display the Username - START -->
-          <% if (username) { %>
-            <span class="navbar-brand ml-2" style="color: black;">Logged In As: <%= username %></span>
+          <%  %>
+          <% if (user) { %>
+            <span class="navbar-brand ml-2" style="color: black;">Logged In As: <%= user %></span>
           <% } %>
         <!-- Display the Username - END -->
 
         <!-- Login/Logout Form - START -->
-        <% if (username) { %>
+        <% if (user) { %>
           <form action="/logout" method="POST" class="form-inline" >
             <button type="submit" class="btn btn-light">Logout</button>
           </form>
