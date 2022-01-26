@@ -86,7 +86,3 @@ app.post('/login', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-// _header.ejs
-// <form action="/login" method="POST" class="form-inline" >
-// <input type="text" name="username" class="form-control mr-sm-2" placeholder="username">

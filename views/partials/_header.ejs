@@ -10,7 +10,19 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         
+        
+        <!-- Display the Username - START -->
+          <% if (username) { %>
+            <span class="navbar-brand ml-2" style="color: black;">Logged In As: <%= username %></span>
+          <% } %>
+        <!-- Display the Username - END -->
+
         <!-- The Login Form - START -->
+        <% if (username) { %>
+          <form action="/logout" method="POST" class="form-inline" >
+            <button type="submit" class="btn btn-light">Logout</button>
+          </form>
+        <% } else { %>
         <form action="/login" method="POST" class="form-inline" >
           <!-- 1. A single text input with name="username" -->
           <input type="text" name="username" class="form-control mr-sm-2" placeholder="username">
@@ -18,11 +30,9 @@
           <button type="submit" class="btn btn-light">Sign In</button>
           <!-- 3. Users will type in any username into this form in order to "sign in" for now. -->
         </form>
+        <% } %>
         <!-- The Login Form - END -->
 
-        <!-- Display the Username - START -->
-          <span class="navbar-brand ml-2">Welcome, <%= username %>!</span>
-        <!-- Display the Username - END -->
 
       </div>
     </div>
