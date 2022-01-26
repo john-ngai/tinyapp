@@ -23,13 +23,16 @@
             <button type="submit" class="btn btn-light">Logout</button>
           </form>
         <% } else { %>
-        <form action="/login" method="POST" class="form-inline">
-          <!-- 1. A single text input with name="username" -->
-          <input type="text" name="username" class="form-control mr-sm-2" placeholder="username" >
-          <!-- 2. A submit button to submit the form -->
-          <button type="submit" class="btn btn-light">Sign In</button>
-          <!-- 3. Users will type in any username into this form in order to "sign in" for now. -->
-        </form>
+          <form action="/login" method="POST" class="form-inline">
+            <!-- 1. A single text input with name="username" -->
+            <input type="text" name="username" class="form-control mr-sm-2" placeholder="username" >
+            <!-- 2. A submit button to submit the form -->
+            <button type="submit" class="btn btn-light">Sign In</button>
+            <!-- 3. Users will type in any username into this form in order to "sign in" for now. -->
+          </form>
+          <form action="" class="form-inline">
+            <a href="/register"><button type="button" class="btn btn-light ml-2">Register</button></a>
+          </form>
         <% } %>
         <!-- Login/Logout Form - END -->
       </div>
