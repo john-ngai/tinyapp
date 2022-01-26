@@ -1,5 +1,3 @@
-let min = 90;
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -80,6 +78,11 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/login', (req, res) => {
   const signinID = req.body.username;
   res.cookie('username', signinID);
+  res.redirect('/urls');
+});
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
   res.redirect('/urls');
 });
 
