@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const app = express();
 const port = 8080;
@@ -10,7 +10,13 @@ const { emailLookup, passwordLookup, userIDLookup, urlsForUser, urlOwner } = req
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['testKey'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+}));
 
 const users = {
   'userRandomID': {
@@ -43,10 +49,10 @@ app.get('/', (req, res) => {
 
 
 app.get('/urls', (req, res) => {
-  const userIDCookie = req.cookies.user_id;
-  const myURLs = urlsForUser(urlDatabase, userIDCookie);
+  const userIDSession = req.session.user_id // cookie-session
+  const myURLs = urlsForUser(urlDatabase, userIDSession);
   const templateVars = {
-    user: users[userIDCookie] ? users[userIDCookie].email : '',
+    user: users[userIDSession] ? users[userIDSession].email : '',
     urls: myURLs,
   };
   res.render('urls_index', templateVars);
@@ -54,9 +60,9 @@ app.get('/urls', (req, res) => {
 
 
 app.get('/urls/new', (req, res) => {
-  const userIDCookie = req.cookies.user_id;
-  const templateVars = { user: users[userIDCookie] ? users[userIDCookie].email : '' };
-  if (!userIDCookie) {
+  const userIDSession = req.session.user_id // cookie-session
+  const templateVars = { user: users[userIDSession] ? users[userIDSession].email : '' };
+  if (!userIDSession) {
     res.redirect('/login');
   }
   res.render('urls_new', templateVars);
@@ -74,8 +80,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
 
 app.post('/urls', (req, res) => {
-  const userIDCookie = req.cookies.user_id;
-  if (!userIDCookie) {
+  const userIDSession = req.session.user_id // cookie-session
+  if (!userIDSession) {
     return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
   }
   const shortURL = hexNumGenerator(6);
@@ -83,12 +89,12 @@ app.post('/urls', (req, res) => {
   
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: userIDCookie,
+    userID: userIDSession,
   };
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
-    user: users[userIDCookie] ? users[userIDCookie].email : '',
+    user: users[userIDSession] ? users[userIDSession].email : '',
   };
   res.render("urls_show", templateVars);
 });
@@ -96,11 +102,11 @@ app.post('/urls', (req, res) => {
 
 app.post('/urls/:url/delete', (req, res) => {
   const shortURL = req.params.url;
-  const userIDCookie = req.cookies.user_id;
-  if (!userIDCookie) {
+  const userIDSession = req.session.user_id // cookie-session
+  if (!userIDSession) {
     return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
   }
-  const myURLs = urlsForUser(urlDatabase, userIDCookie);
+  const myURLs = urlsForUser(urlDatabase, userIDSession);
   if (!urlOwner(shortURL, myURLs)) {
     return res.status(403).send(`ACCESS DENIED (403): /url/${shortURL} belongs to another user.`);
   }
@@ -112,12 +118,12 @@ app.post('/urls/:url/delete', (req, res) => {
 app.get('/urls/:url/edit', (req, res) => {
   const shortURL = req.params.url;
   const longURL = urlDatabase[shortURL]['longURL'];
-  const userIDCookie = req.cookies.user_id;
-  if (!userIDCookie) {
+  const userIDSession = req.session.user_id // cookie-session
+  if (!userIDSession) {
     return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
   }
 
-  const myURLs = urlsForUser(urlDatabase, userIDCookie);
+  const myURLs = urlsForUser(urlDatabase, userIDSession);
   if (!urlOwner(shortURL, myURLs)) {
     return res.status(403).send(`ACCESS DENIED (403): /url/${shortURL} belongs to another user.`);
   }
@@ -125,7 +131,7 @@ app.get('/urls/:url/edit', (req, res) => {
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
-    user: users[userIDCookie] ? users[userIDCookie].email : '',
+    user: users[userIDSession] ? users[userIDSession].email : '',
   };
   res.render("urls_show", templateVars);
 });
@@ -149,13 +155,13 @@ app.post('/login', (req, res) => {
     return res.status(403).send('ERROR (403): Incorrect password. Please try again.');
   }
   const id = userIDLookup(users, email);
-  res.cookie('user_id', id);
+  req.session.user_id = id; // cookie-session
   res.redirect('/urls');
 });
 
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null; // cookie-session
   res.redirect('/urls');
 });
 
@@ -182,7 +188,7 @@ app.post('/register', (req, res) => {
     email: newEmail,
     password: hashedPassword,
   };
-  res.cookie('user_id', newUserID);
+  req.session.user_id = newUserID; // cookie-session
   res.redirect('/urls');
 });
 
