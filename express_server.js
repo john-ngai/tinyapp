@@ -43,8 +43,6 @@ app.get('/', (req, res) => {
 
 
 app.get('/urls', (req, res) => {
-  console.log(users) // TEST CASE TEST CASE TEST CASE
-
   const userIDCookie = req.cookies.user_id;
   const myURLs = urlsForUser(urlDatabase, userIDCookie);
   const templateVars = {
@@ -87,7 +85,6 @@ app.post('/urls', (req, res) => {
     longURL: longURL,
     userID: userIDCookie,
   };
-  
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
@@ -145,16 +142,12 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
   if (!emailLookup(users, email)) {
     return res.status(403).send(`ERROR (403): ${email} is not a registered email.`);
   }
-  
-  // passwordLookup is OUTDATED
   if (!passwordLookup(users, email, password)) {
     return res.status(403).send('ERROR (403): Incorrect password. Please try again.');
   }
-  
   const id = userIDLookup(users, email);
   res.cookie('user_id', id);
   res.redirect('/urls');
@@ -171,7 +164,7 @@ app.get('/register', (req, res) => {
   res.render('urls_register');
 });
 
-///////////////////////////////////
+
 app.post('/register', (req, res) => {
   const newUserID = hexNumGenerator(6);
   const newEmail = req.body.email;
@@ -192,7 +185,7 @@ app.post('/register', (req, res) => {
   res.cookie('user_id', newUserID);
   res.redirect('/urls');
 });
-///////////////////////////////////
+
 
 app.get('/login', (req, res) => {
   res.render('urls_login');
