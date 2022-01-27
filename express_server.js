@@ -5,7 +5,7 @@ const app = express();
 const port = 8080;
 
 const { hexNumGenerator } = require('./exports/hexNumGenerator');
-const { emailLookup, passwordLookup, userIDLookup } = require('./exports/userDataLookup');
+const { emailLookup, passwordLookup, userIDLookup, userURLsLookup } = require('./exports/userDataLookup');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -25,8 +25,14 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  'b2xVn2': {
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'userRandomID',
+  },
+  '9sm5xK': {
+    longURL: 'http://www.google.com',
+    userID: 'user2RandomID',
+  },
 };
 
 
@@ -37,31 +43,48 @@ app.get('/', (req, res) => {
 
 app.get('/urls', (req, res) => {
   const userIDCookie = req.cookies.user_id;
+  const myURLs = userURLsLookup(urlDatabase, userIDCookie);
   const templateVars = {
-    urls: urlDatabase,
     user: users[userIDCookie] ? users[userIDCookie].email : '',
+    urls: myURLs,
   };
   res.render('urls_index', templateVars);
 });
 
+
 app.get('/urls/new', (req, res) => {
   const userIDCookie = req.cookies.user_id;
   const templateVars = { user: users[userIDCookie] ? users[userIDCookie].email : '' };
+  if (!userIDCookie) {
+    res.redirect('/login');
+  }
   res.render('urls_new', templateVars);
 });
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.status(404).send(`ERROR (404): /url/${shortURL} does not exist.`);
+  }
+  const longURL = urlDatabase[shortURL]['longURL'];
   res.redirect(longURL);
 });
 
 
 app.post('/urls', (req, res) => {
+  const userIDCookie = req.cookies.user_id;
+  if (!userIDCookie) {
+    return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
+  }
   const shortURL = hexNumGenerator(6);
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  const userIDCookie = req.cookies.user_id;
+  
+  urlDatabase[shortURL] = {
+    longURL: longURL,
+    userID: userIDCookie,
+  };
+  
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
@@ -80,7 +103,7 @@ app.post('/urls/:url/delete', (req, res) => {
 
 app.get('/urls/:url/edit', (req, res) => {
   const shortURL = req.params.url;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL]['longURL'];
   const userIDCookie = req.cookies.user_id;
   const templateVars = {
     shortURL: shortURL,
@@ -94,7 +117,7 @@ app.get('/urls/:url/edit', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   const newLongURL = req.body.newLongURL;
   const shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = newLongURL;
+  urlDatabase[shortURL]['longURL'] = newLongURL;
   res.redirect('/urls');
 });
 
