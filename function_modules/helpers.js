@@ -3,23 +3,23 @@ const bcrypt = require('bcryptjs');
 // Helper functions for express_server.js
 
 
-// Return true if the email param matches an email inside the users object.
-const emailLookup = (users, email) => {
-  const userIDs = Object.keys(users);
+// Receives an email and the users database, and returns true of the email is found inside the database.
+const emailLookup = (database, email) => {
+  const userIDs = Object.keys(database);
   for (const user of userIDs) {
-    if (users[user]['email'] === email) {
+    if (database[user]['email'] === email) {
       return true;
     }
   }
   return false;
 };
 
-// Return true if an email & password combo matches a the values for a specific user inside the users object.
-const passwordLookup = (users, email, password) => {
-  const userIDs = Object.keys(users);
+// Receieves an email, password, and users database, and returns true if the email and password combination matches the values found inside the database for a specific user id.
+const passwordLookup = (database, email, password) => {
+  const userIDs = Object.keys(database);
   for (const user of userIDs) {
-    const hashedPassword = users[user]['password'];
-    if (users[user]['email'] === email && (bcrypt.compareSync(password, hashedPassword))) {
+    const hashedPassword = database[user]['password'];
+    if (database[user]['email'] === email && (bcrypt.compareSync(password, hashedPassword))) {
       return true;
     }
   }
@@ -38,6 +38,7 @@ const getUserByEmail = (email, database) => {
 };
 
 // Return an object containing the urls for a specific user id.
+// Receives a user id and the users database, and returns an object containing the urls created by the user id"
 const urlsForUser = (database, userID) => {
   const myURLs = {};
   for (const url in database) {
@@ -49,7 +50,7 @@ const urlsForUser = (database, userID) => {
 };
 
 // This function is dependent on the return value of the urlsForUser function.
-// Return true if the shortURL param matches any of the short urls belonging to the target user id.
+// Receive a short url and an object of urls (i.e myURLs)), and returns true if the short url matches any of the urls inside the object.
 const urlOwner = (shortURL, myURLs) => {
   for (const url in myURLs) {
     if (url === shortURL) {
