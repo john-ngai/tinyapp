@@ -44,4 +44,15 @@ const urlsForUser = (database, userID) => {
   return myURLs;
 };
 
-module.exports = { emailLookup, passwordLookup, userIDLookup, urlsForUser };
+// This function is dependent on the return value of the urlsForUser function.
+// Return true if the shortURL param matches any of the short urls belonging to the target user id.
+const urlOwner = (shortURL, myURLs) => {
+  for (const url in myURLs) {
+    if (url === shortURL) {
+      return true;
+    }
+  }
+  return false;
+};
+
+module.exports = { emailLookup, passwordLookup, userIDLookup, urlsForUser, urlOwner };
