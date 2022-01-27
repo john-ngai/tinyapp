@@ -176,7 +176,7 @@ app.post('/register', (req, res) => {
   const newUserID = hexNumGenerator(6);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
   if (newEmail === '' || newPassword === '') {
     return res.status(400).send('ERROR (400): Empty email and/or password field.');
