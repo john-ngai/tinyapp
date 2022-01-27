@@ -5,7 +5,7 @@ const app = express();
 const port = 8080;
 
 const { hexNumGenerator } = require('./exports/hexNumGenerator');
-const { emailLookup, passwordLookup, userIDLookup, urlsForUser } = require('./exports/userDataLookup');
+const { emailLookup, passwordLookup, userIDLookup, urlsForUser, urlOwner } = require('./exports/userDataLookup');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -96,6 +96,14 @@ app.post('/urls', (req, res) => {
 
 app.post('/urls/:url/delete', (req, res) => {
   const shortURL = req.params.url;
+  const userIDCookie = req.cookies.user_id;
+  if (!userIDCookie) {
+    return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
+  }
+  const myURLs = urlsForUser(urlDatabase, userIDCookie);
+  if (!urlOwner(shortURL, myURLs)) {
+    return res.status(403).send(`ACCESS DENIED (403): /url/${shortURL} belongs to another user.`);
+  }
   delete urlDatabase[shortURL];
   res.redirect('/urls');
 });
@@ -105,6 +113,15 @@ app.get('/urls/:url/edit', (req, res) => {
   const shortURL = req.params.url;
   const longURL = urlDatabase[shortURL]['longURL'];
   const userIDCookie = req.cookies.user_id;
+  if (!userIDCookie) {
+    return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
+  }
+
+  const myURLs = urlsForUser(urlDatabase, userIDCookie);
+  if (!urlOwner(shortURL, myURLs)) {
+    return res.status(403).send(`ACCESS DENIED (403): /url/${shortURL} belongs to another user.`);
+  }
+
   const templateVars = {
     shortURL: shortURL,
     longURL: longURL,
