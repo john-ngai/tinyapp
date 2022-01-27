@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 // Helper functions for express_server.js
 
 
