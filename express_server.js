@@ -6,7 +6,7 @@ const app = express();
 const port = 8080;
 
 const { hexNumGenerator } = require('./function_modules/hexNumGenerator');
-const { emailLookup, passwordLookup, userIDLookup, urlsForUser, urlOwner } = require('./function_modules/userDataLookup');
+const { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner } = require('./function_modules/userDataLookup');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -22,12 +22,12 @@ const users = {
   'userRandomID': {
     id: 'userRandomID',
     email: 'user@example.com',
-    password: 'purple-monkey-dinosaur'
+    password: bcrypt.hashSync('purple-monkey-dinosaur', 10),
   },
   'user2RandomID': {
     id: 'user2RandomID',
     email: 'user2@example.com',
-    password: 'dishwasher-funk',
+    password: bcrypt.hashSync('dishwasher-funk', 10),
   },
 };
 
@@ -144,7 +144,6 @@ app.post('/urls/:shortURL', (req, res) => {
   res.redirect('/urls');
 });
 
-
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -154,11 +153,10 @@ app.post('/login', (req, res) => {
   if (!passwordLookup(users, email, password)) {
     return res.status(403).send('ERROR (403): Incorrect password. Please try again.');
   }
-  const id = userIDLookup(users, email);
+  const id = getUserByEmail(email, users);
   req.session.user_id = id; // cookie-session
   res.redirect('/urls');
 });
-
 
 app.post('/logout', (req, res) => {
   req.session = null; // cookie-session

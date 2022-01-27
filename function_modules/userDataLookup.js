@@ -26,11 +26,11 @@ const passwordLookup = (users, email, password) => {
   return false;
 };
 
-// Return the matching user id for an email inside the users object.
-const userIDLookup = (users, email) => {
-  const userIDs = Object.keys(users);
+// Receives a user's email and the users database as parameters, and returns the matching user id.
+const getUserByEmail = (email, database) => {
+  const userIDs = Object.keys(database);
   for (const user of userIDs) {
-    if (users[user]['email'] === email) {
+    if (database[user]['email'] === email) {
       return user;
     }
   }
@@ -58,4 +58,4 @@ const urlOwner = (shortURL, myURLs) => {
   return false;
 };
 
-module.exports = { emailLookup, passwordLookup, userIDLookup, urlsForUser, urlOwner };
+module.exports = { emailLookup, passwordLookup, userIDLookup, getUserByEmail, urlsForUser, urlOwner };
