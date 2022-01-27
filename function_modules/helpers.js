@@ -34,6 +34,7 @@ const getUserByEmail = (email, database) => {
       return user;
     }
   }
+  return undefined;
 };
 
 // Return an object containing the urls for a specific user id.
