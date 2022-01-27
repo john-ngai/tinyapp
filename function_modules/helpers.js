@@ -58,4 +58,4 @@ const urlOwner = (shortURL, myURLs) => {
   return false;
 };
 
-module.exports = { emailLookup, passwordLookup, userIDLookup, getUserByEmail, urlsForUser, urlOwner };
+module.exports = { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner };
