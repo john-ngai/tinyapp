@@ -5,7 +5,7 @@ const app = express();
 const port = 8080;
 
 const { hexNumGenerator } = require('./exports/hexNumGenerator');
-const { emailLookup, passwordLookup, userIDLookup, userURLsLookup } = require('./exports/userDataLookup');
+const { emailLookup, passwordLookup, userIDLookup, urlsForUser } = require('./exports/userDataLookup');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
 
 app.get('/urls', (req, res) => {
   const userIDCookie = req.cookies.user_id;
-  const myURLs = userURLsLookup(urlDatabase, userIDCookie);
+  const myURLs = urlsForUser(urlDatabase, userIDCookie);
   const templateVars = {
     user: users[userIDCookie] ? users[userIDCookie].email : '',
     urls: myURLs,

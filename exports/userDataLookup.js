@@ -34,7 +34,7 @@ const userIDLookup = (users, email) => {
 };
 
 // Return an object containing the urls for a specific user id.
-const userURLsLookup = (database, userID) => {
+const urlsForUser = (database, userID) => {
   const myURLs = {};
   for (const url in database) {
     if (database[url]['userID'] === userID) {
@@ -44,4 +44,4 @@ const userURLsLookup = (database, userID) => {
   return myURLs;
 };
 
-module.exports = { emailLookup, passwordLookup, userIDLookup, userURLsLookup };
+module.exports = { emailLookup, passwordLookup, userIDLookup, urlsForUser };
