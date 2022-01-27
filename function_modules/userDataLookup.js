@@ -16,7 +16,8 @@ const emailLookup = (users, email) => {
 const passwordLookup = (users, email, password) => {
   const userIDs = Object.keys(users);
   for (const user of userIDs) {
-    if (users[user]['email'] === email && users[user]['password'] === password) {
+    const hashedPassword = users[user]['password'];
+    if (users[user]['email'] === email && (bcrypt.compareSync(password, hashedPassword))) {
       return true;
     }
   }
