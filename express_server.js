@@ -6,7 +6,7 @@ const app = express();
 const port = 8080;
 
 const { hexNumGenerator } = require('./function_modules/hexNumGenerator');
-const { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner } = require('./function_modules/userDataLookup');
+const { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner } = require('./function_modules/helpers');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
