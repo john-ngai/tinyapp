@@ -7,21 +7,22 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <!-- Req. #10 -->
+       
+        <!-- GET /urls/new -->
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        
+        <!-- If the user is logged in, display their email and a Logout button (POST /logout). -->
         <% if (user) { %>
-          <!-- Req. #1 -->
           <span class="navbar-brand ml-2" style="color: black;"><%= user %></span>
-          <!-- Req. #2 -->
           <form action="/logout" method="POST" class="form-inline" >
             <button type="submit" class="btn btn-light">Logout</button>
           </form>
+        
+        <!-- If the user is NOT logged in, display the Sign-In (/login) and Register buttons (/register) -->
         <% } else { %>
-          <!-- Req. #3 -->
             <a href="/login">
               <button type="button" class="btn btn-light ml-2">Sign-In</button>
             </a>
-          <!-- Req. #4 -->
             <a href="/register">
               <button type="button" class="btn btn-light ml-2">Register</button>
             </a>
