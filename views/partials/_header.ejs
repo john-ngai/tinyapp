@@ -4,35 +4,28 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        
-        <!-- Display the user's email - START -->
-          <%  %>
-          <% if (user) { %>
-            <span class="navbar-brand ml-2" style="color: black;">Logged In As: <%= user %></span>
-          <% } %>
-        <!-- Display the user's email - END -->
-
-        <!-- Login/Logout Form - START -->
         <% if (user) { %>
+          <!-- Req. #1 -->
+          <span class="navbar-brand ml-2" style="color: black;"><%= user %></span>
+          <!-- Req. #2 -->
           <form action="/logout" method="POST" class="form-inline" >
             <button type="submit" class="btn btn-light">Logout</button>
           </form>
         <% } else { %>
-          <form action="" class="form-inline">
-            <a href="/login"><button type="button" class="btn btn-light ml-2">Sign In</button></a>
-          </form>
-          <form action="" class="form-inline">
-            <a href="/register"><button type="button" class="btn btn-light ml-2">Register</button></a>
-          </form>
+          <!-- Req. #3 -->
+            <a href="/login">
+              <button type="button" class="btn btn-light ml-2">Sign-In</button>
+            </a>
+          <!-- Req. #4 -->
+            <a href="/register">
+              <button type="button" class="btn btn-light ml-2">Register</button>
+            </a>
         <% } %>
-        <!-- Login/Logout Form - END -->
       </div>
     </div>
-  
   </nav>
 </header>
