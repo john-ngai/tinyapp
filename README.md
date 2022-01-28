@@ -8,7 +8,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["Dashboard with a list of urls created by the user"](https://github.com/mrjohnming/tinyapp/blob/main/docs/page_urls.png)
 
-!["Edit page to change the long URL for existing short URLs"](https://github.com/mrjohnming/tinyapp/blob/main/docs/page_edit.png)
+!["Edit page to change the long url for existing short urls"](https://github.com/mrjohnming/tinyapp/blob/main/docs/page_edit.png)
 
 ## Dependencies
 
