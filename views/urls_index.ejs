@@ -26,13 +26,15 @@
               <td><%= url %></td>
               <td><%= urls[url]['longURL'] %></td>
               <td>
-                <!-- Req. #9 -->
+
+                <!-- GET /urls/:id -->
                 <form method="GET" action="/urls/<%= url %>">
                   <button type="submit" class="btn btn-secondary">Edit</button>
                 </form>
               </td>
               <td>
-                <!-- Req. #10 -->
+
+                <!-- POST /urls/:id/delete -->
                 <form method="POST" action="/urls/<%= url %>/delete">
                   <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
