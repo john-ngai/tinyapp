@@ -46,7 +46,8 @@ const urlDatabase = {
 // GET /
 app.get('/', (req, res) => {
   const sessionID = req.session.user_id
-  // Req. #5 & #6
+  
+  // If logged in, redirect to /urls, if not, redirect to /login.
   sessionID ? res.redirect('/urls') : res.redirect('/login');
 });
 
@@ -54,11 +55,13 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   const sessionID = req.session.user_id
   const myURLs = urlsForUser(urlDatabase, sessionID);
-  // Req. #7
+  
+  // If NOT logged in, display a 404 error.
   if (!sessionID) {
     return res.status(404).send('Please login to view this page.');
   } else {
-    // Req. #8
+    
+    // If logged in, display urls_index.ejs
     return res.render('urls_index', { 
       user: users[sessionID]['email'],
       urls: myURLs,
@@ -69,27 +72,31 @@ app.get('/urls', (req, res) => {
 // GET /urls/new
 app.get('/urls/new', (req, res) => {
   const sessionID = req.session.user_id;
-  // #13
+
+  // If NOT logged in, redirect to /login.
   sessionID ? res.render('urls_new', {user: users[sessionID]['email']}) : res.redirect('/login');
 });
 
 // GET /urls/:id
 app.get('/urls/:id', (req, res) => {
   const sessionID = req.session.user_id;
-  // #19
+  
+  // If NOT logged in, display a 403 error.
   if (!sessionID) {
-    return res.status(404).send('Please login to view this page.');
+    return res.status(403).send('Please login to view this page.');
   }
   const shortURL = req.params.id;
-  // #18
+  
+  // If the short URL doesn't exist, display a 404 error.
   if (!urlDatabase[shortURL]) {
     return res.status(404).send(`This short URL (/urls/${shortURL}) does not exist.`);
   }
   const myURLS = urlsForUser(urlDatabase, sessionID);
   const checkURLOwner = urlOwner(shortURL, myURLS);
-  // #20
+  
+  // If the user doesn't own the short URL, display a 403 error.
   if (!checkURLOwner) {
-    return res.status(404).send(`Access Denied: This short URL belongs to someone else.`);
+    return res.status(403).send(`Access Denied: This short URL belongs to someone else.`);
   }
   const longURL = urlDatabase[shortURL]['longURL'];
   res.render('urls_show', {
@@ -102,98 +109,117 @@ app.get('/urls/:id', (req, res) => {
 // GET /u/:id
 app.get('/u/:id', (req, res) => {
   const shortURL = req.params.id;
-  // #21 & #22
+  
+  // If the short URL exists, redirect to the long URL, if not, display a 404 error.
   urlDatabase[shortURL] ? res.redirect(urlDatabase[shortURL]['longURL']) : res.status(404).send(`This page (/u/${shortURL}) does not exist.`);
 });
 
 // POST /urls
 app.post('/urls', (req, res) => {
   const sessionID = req.session.user_id
-  // #23
+  
+  // If NOT logged in, return a 403 error.
   if (!sessionID) {
     return res.status(403).send(`You must be signed-in to use this feature.`);
   }
-  // #24.1
+  
+  // Generate a new random 6 digit hexadecimal short URL.
   const shortURL = hexNumGenerator(6);
   const longURL = req.body.longURL;
-  // #24.2
+  
+  // Save the new short URL onto the database and associate it with the user.
   urlDatabase[shortURL] = {
     longURL: longURL,
     userID: sessionID,
   };
-  // #25
+  
+  // Redirect to /urls/:id, where id matches the new shortURL.
   res.redirect(`/urls/${shortURL}`);
 });
 
 // POST /urls/:id
 app.post('/urls/:id', (req, res) => {
   const sessionID = req.session.user_id
-  // #26
+
+  // If NOT logged in, display a 403 error.
   if (!sessionID) {
     return res.status(403).send(`You must be signed-in to use this feature.`);
   }
   const shortURL = req.params.id;
   const myURLS = urlsForUser(urlDatabase, sessionID);
-  // #27
+  
+  // If the user doesn't own the short URL, display a 403 error.
   if (!urlOwner(shortURL, myURLS)) {
-    return res.status(404).send(`Access Denied: This short URL belongs to someone else.`);
+    return res.status(403).send(`Access Denied: This short URL belongs to someone else.`);
   }
   const newLongURL = req.body.newLongURL;
-  // #28
+  
+  // Update the long URL into the new long URL.
   urlDatabase[shortURL]['longURL'] = newLongURL;
-  // 29
+  
+  // Redirect to /urls.
   res.redirect('/urls');
 });
 
 // POST /urls/:id/delete
 app.post('/urls/:id/delete', (req, res) => {
   const sessionID = req.session.user_id
-  // #30
+  
+  // If NOT logged in, display a 403 error.
   if (!sessionID) {
     return res.status(403).send(`You must be signed-in to use this feature.`);
   }
   const shortURL = req.params.id;
   const myURLs = urlsForUser(urlDatabase, sessionID);
-  // #31
+  
+  // // If the user doesn't own the short URL, display a 403 error.
   if (!urlOwner(shortURL, myURLs)) {
-    return res.status(404).send(`Access Denied: This short URL belongs to someone else.`);
+    return res.status(403).send(`Access Denied: This short URL belongs to someone else.`);
   }
-  // #32
+  
+  // Delete the short URL / long URL from the database.
   delete urlDatabase[shortURL];
-  // #33
+ 
+  // Redirect to /urls.
   res.redirect('/urls');
 });
 
 // GET /login
 app.get('/login', (req, res) => {
   const sessionID = req.session.user_id;
-  // #36
-  sessionID ? res.redirect('/urls') : res.render('urls_login', { user: undefined });
+  
+  // If logged in, redirect to /urls, if not, display login.ejs
+  sessionID ? res.redirect('/urls') : res.render('login', { user: undefined });
 });
 
 // GET /register
 app.get('/register', (req, res) => {
   const sessionID = req.session.user_id;
-  // #37
-  sessionID ? res.redirect('/urls') : res.render('urls_register', { user: undefined });
+  
+  // If logged in, redirect to /urls, if not, display register.ejs
+  sessionID ? res.redirect('/urls') : res.render('register', { user: undefined });
 });
 
 // POST /login
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  // #40.1
+  
+  // If the email received from the client isn't found in the database, display a 400 error.
   if (!emailLookup(users, email)) {
-    return res.status(403).send(`${email} is not a registered email.`);
+    return res.status(400).send(`${email} is not a registered email.`);
   }
-  // #40.2
+  
+  // If the password received from the client does not match the one found in the database, display a 400 error.
   if (!passwordLookup(users, email, password)) {
-    return res.status(403).send('Incorrect password. Please try again.');
+    return res.status(400).send('Incorrect password. Please try again.');
   }
   const id = getUserByEmail(email, users);
-  // #41
+  
+  // Set the session cookie to the user id.
   req.session.user_id = id;
-  // #42
+  
+  // Redirect to /urls.
   res.redirect('/urls');
 });
 
@@ -202,33 +228,41 @@ app.post('/register', (req, res) => {
   const newUserID = hexNumGenerator(6);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
-  // #45
+  
+  // Encrypt the password.
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
-  // #43
+  
+  // If the email or password received from the client is empty, display a 400 error.
   if (newEmail === '' || newPassword === '') {
     return res.status(400).send('Empty email and/or password field.');
   }
-  // #44
+  
+  // If the email received from the client is already found in the database, display a 400 error.
   if (emailLookup(users, newEmail)) {
     return res.status(400).send(`${newEmail} has already been registered.`);
   }
-  // #46
+  
+  // Store the new user profile into the database.
   users[newUserID] = {
     id: newUserID,
     email: newEmail,
     password: hashedPassword,
   };
-  // #47
+  
+  // Set the session cookie to the user id.
   req.session.user_id = newUserID;
-  // #48
+  
+  // Redirect to /urls.
   res.redirect('/urls');
 });
 
 // POST /logout
 app.post('/logout', (req, res) => {
-  // #48
+  
+  // Delete the session cookie.
   req.session = null;
-  // #49
+  
+  // Redirect to /urls.
   res.redirect('/urls');
 });
 
