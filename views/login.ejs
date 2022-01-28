@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>Sign-In</title>
 </head>
-
 <body>
   <%- include('partials/_header') %>
   <div>
     <br>
     <h1 style="font-size: 30px;">Sign-In</h1>
-    <!-- #35 -->
+    
+    <!-- POST /login -->
     <form action="/login" method="POST">
-      <!-- #34 -->
+
+      <!-- Input fields for an email and password. -->
       <input type="email" name="email" placeholder="Email/Username">
       <input type="password" name="password" placeholder="Password">
       <button type="submit" class="btn btn-primary">Login</button>
