@@ -1,23 +1,23 @@
+// Dependencies
 const express = require('express');
-const bodyParser = require('body-parser');
-const cookieSession = require('cookie-session');
-const bcrypt = require('bcryptjs');
 const app = express();
-const port = 8080;
-
-const { hexNumGenerator } = require('./function_modules/hexNumGenerator');
-const { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner } = require('./function_modules/helpers');
-
 app.set('view engine', 'ejs');
+const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
+const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
-  keys: ['testKey'],
-
-  // Cookie Options
-  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  keys: ['key'],
+  maxAge: 24 * 60 * 60 * 1000,
 }));
+const bcrypt = require('bcryptjs');
 
+// Modules
+const { hexNumGenerator } = require('./function_modules/hexNumGenerator');
+const { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner } = require('./function_modules/helpers');
+const { response } = require('express');
+
+// Users database
 const users = {
   'userRandomID': {
     id: 'userRandomID',
@@ -31,6 +31,7 @@ const users = {
   },
 };
 
+// URL Database
 const urlDatabase = {
   'b2xVn2': {
     longURL: 'http://www.lighthouselabs.ca',
@@ -42,160 +43,196 @@ const urlDatabase = {
   },
 };
 
-
+// GET /
 app.get('/', (req, res) => {
-  res.redirect('/urls');
+  const sessionID = req.session.user_id
+  // Req. #5 & #6
+  sessionID ? res.redirect('/urls') : res.redirect('/login');
 });
 
-
+// GET /urls
 app.get('/urls', (req, res) => {
-  const userIDSession = req.session.user_id // cookie-session
-  const myURLs = urlsForUser(urlDatabase, userIDSession);
-  const templateVars = {
-    user: users[userIDSession] ? users[userIDSession].email : '',
-    urls: myURLs,
-  };
-  res.render('urls_index', templateVars);
-});
-
-
-app.get('/urls/new', (req, res) => {
-  const userIDSession = req.session.user_id // cookie-session
-  const templateVars = { user: users[userIDSession] ? users[userIDSession].email : '' };
-  if (!userIDSession) {
-    res.redirect('/login');
+  const sessionID = req.session.user_id
+  const myURLs = urlsForUser(urlDatabase, sessionID);
+  // Req. #7
+  if (!sessionID) {
+    return res.status(404).send('Please login to view this page.');
+  } else {
+    // Req. #8
+    return res.render('urls_index', { 
+      user: users[sessionID]['email'],
+      urls: myURLs,
+     });
   }
-  res.render('urls_new', templateVars);
 });
 
+// GET /urls/new
+app.get('/urls/new', (req, res) => {
+  const sessionID = req.session.user_id;
+  // #13
+  sessionID ? res.render('urls_new', {user: users[sessionID]['email']}) : res.redirect('/login');
+});
 
-app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
+// GET /urls/:id
+app.get('/urls/:id', (req, res) => {
+  const sessionID = req.session.user_id;
+  // #19
+  if (!sessionID) {
+    return res.status(404).send('Please login to view this page.');
+  }
+  const shortURL = req.params.id;
+  // #18
   if (!urlDatabase[shortURL]) {
-    return res.status(404).send(`ERROR (404): /url/${shortURL} does not exist.`);
+    return res.status(404).send(`This short URL (/urls/${shortURL}) does not exist.`);
+  }
+  const myURLS = urlsForUser(urlDatabase, sessionID);
+  const checkURLOwner = urlOwner(shortURL, myURLS);
+  // #20
+  if (!checkURLOwner) {
+    return res.status(404).send(`Access Denied: This short URL belongs to someone else.`);
   }
   const longURL = urlDatabase[shortURL]['longURL'];
-  res.redirect(longURL);
+  res.render('urls_show', {
+    user: users[sessionID]['email'],
+    shortURL,
+    longURL,
+  });
 });
 
+// GET /u/:id
+app.get('/u/:id', (req, res) => {
+  const shortURL = req.params.id;
+  // #21 & #22
+  urlDatabase[shortURL] ? res.redirect(urlDatabase[shortURL]['longURL']) : res.status(404).send(`This page (/u/${shortURL}) does not exist.`);
+});
 
+// POST /urls
 app.post('/urls', (req, res) => {
-  const userIDSession = req.session.user_id // cookie-session
-  if (!userIDSession) {
-    return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
+  const sessionID = req.session.user_id
+  // #23
+  if (!sessionID) {
+    return res.status(403).send(`You must be signed-in to use this feature.`);
   }
+  // #24.1
   const shortURL = hexNumGenerator(6);
   const longURL = req.body.longURL;
-  
+  // #24.2
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: userIDSession,
+    userID: sessionID,
   };
-  const templateVars = {
-    shortURL: shortURL,
-    longURL: longURL,
-    user: users[userIDSession] ? users[userIDSession].email : '',
-  };
-  res.render("urls_show", templateVars);
+  // #25
+  res.redirect(`/urls/${shortURL}`);
 });
 
-
-app.post('/urls/:url/delete', (req, res) => {
-  const shortURL = req.params.url;
-  const userIDSession = req.session.user_id // cookie-session
-  if (!userIDSession) {
-    return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
+// POST /urls/:id
+app.post('/urls/:id', (req, res) => {
+  const sessionID = req.session.user_id
+  // #26
+  if (!sessionID) {
+    return res.status(403).send(`You must be signed-in to use this feature.`);
   }
-  const myURLs = urlsForUser(urlDatabase, userIDSession);
-  if (!urlOwner(shortURL, myURLs)) {
-    return res.status(403).send(`ACCESS DENIED (403): /url/${shortURL} belongs to another user.`);
+  const shortURL = req.params.id;
+  const myURLS = urlsForUser(urlDatabase, sessionID);
+  // #27
+  if (!urlOwner(shortURL, myURLS)) {
+    return res.status(404).send(`Access Denied: This short URL belongs to someone else.`);
   }
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
-});
-
-
-app.get('/urls/:url/edit', (req, res) => {
-  const shortURL = req.params.url;
-  const longURL = urlDatabase[shortURL]['longURL'];
-  const userIDSession = req.session.user_id // cookie-session
-  if (!userIDSession) {
-    return res.status(403).send(`ERROR (403): You must be signed in to use this feature.`);
-  }
-
-  const myURLs = urlsForUser(urlDatabase, userIDSession);
-  if (!urlOwner(shortURL, myURLs)) {
-    return res.status(403).send(`ACCESS DENIED (403): /url/${shortURL} belongs to another user.`);
-  }
-
-  const templateVars = {
-    shortURL: shortURL,
-    longURL: longURL,
-    user: users[userIDSession] ? users[userIDSession].email : '',
-  };
-  res.render("urls_show", templateVars);
-});
-
-
-app.post('/urls/:shortURL', (req, res) => {
   const newLongURL = req.body.newLongURL;
-  const shortURL = req.params.shortURL;
+  // #28
   urlDatabase[shortURL]['longURL'] = newLongURL;
+  // 29
   res.redirect('/urls');
 });
 
+// POST /urls/:id/delete
+app.post('/urls/:id/delete', (req, res) => {
+  const sessionID = req.session.user_id
+  // #30
+  if (!sessionID) {
+    return res.status(403).send(`You must be signed-in to use this feature.`);
+  }
+  const shortURL = req.params.id;
+  const myURLs = urlsForUser(urlDatabase, sessionID);
+  // #31
+  if (!urlOwner(shortURL, myURLs)) {
+    return res.status(404).send(`Access Denied: This short URL belongs to someone else.`);
+  }
+  // #32
+  delete urlDatabase[shortURL];
+  // #33
+  res.redirect('/urls');
+});
+
+// GET /login
+app.get('/login', (req, res) => {
+  const sessionID = req.session.user_id;
+  // #36
+  sessionID ? res.redirect('/urls') : res.render('urls_login', { user: undefined });
+});
+
+// GET /register
+app.get('/register', (req, res) => {
+  const sessionID = req.session.user_id;
+  // #37
+  sessionID ? res.redirect('/urls') : res.render('urls_register', { user: undefined });
+});
+
+// POST /login
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  // #40.1
   if (!emailLookup(users, email)) {
-    return res.status(403).send(`ERROR (403): ${email} is not a registered email.`);
+    return res.status(403).send(`${email} is not a registered email.`);
   }
+  // #40.2
   if (!passwordLookup(users, email, password)) {
-    return res.status(403).send('ERROR (403): Incorrect password. Please try again.');
+    return res.status(403).send('Incorrect password. Please try again.');
   }
   const id = getUserByEmail(email, users);
-  req.session.user_id = id; // cookie-session
+  // #41
+  req.session.user_id = id;
+  // #42
   res.redirect('/urls');
 });
 
-app.post('/logout', (req, res) => {
-  req.session = null; // cookie-session
-  res.redirect('/urls');
-});
-
-
-app.get('/register', (req, res) => {
-  res.render('urls_register');
-});
-
-
+// POST /register
 app.post('/register', (req, res) => {
   const newUserID = hexNumGenerator(6);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
+  // #45
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
-
+  // #43
   if (newEmail === '' || newPassword === '') {
-    return res.status(400).send('ERROR (400): Empty email and/or password field.');
+    return res.status(400).send('Empty email and/or password field.');
   }
+  // #44
   if (emailLookup(users, newEmail)) {
-    return res.status(400).send(`ERROR (400): ${newEmail} is already in use.`);
+    return res.status(400).send(`${newEmail} has already been registered.`);
   }
+  // #46
   users[newUserID] = {
     id: newUserID,
     email: newEmail,
     password: hashedPassword,
   };
-  req.session.user_id = newUserID; // cookie-session
+  // #47
+  req.session.user_id = newUserID;
+  // #48
   res.redirect('/urls');
 });
 
-
-app.get('/login', (req, res) => {
-  res.render('urls_login');
+// POST /logout
+app.post('/logout', (req, res) => {
+  // #48
+  req.session = null;
+  // #49
+  res.redirect('/urls');
 });
 
-
+const port = 8080;
 app.listen(port, () => {
-  console.log(`Example app listening on http://localhost:${port}/`);
+  console.log(`mrjohnming's TinyApp is listening on http://localhost:${port}/`);
 });
