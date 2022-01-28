@@ -15,7 +15,6 @@ const bcrypt = require('bcryptjs');
 // Modules
 const { hexNumGenerator } = require('./function_modules/hexNumGenerator');
 const { emailLookup, passwordLookup, getUserByEmail, urlsForUser, urlOwner } = require('./function_modules/helpers');
-const { response } = require('express');
 
 // Users database
 const users = {
@@ -45,7 +44,7 @@ const urlDatabase = {
 
 // GET /
 app.get('/', (req, res) => {
-  const sessionID = req.session.user_id
+  const sessionID = req.session.user_id;
   
   // If logged in, redirect to /urls, if not, redirect to /login.
   sessionID ? res.redirect('/urls') : res.redirect('/login');
@@ -53,7 +52,7 @@ app.get('/', (req, res) => {
 
 // GET /urls
 app.get('/urls', (req, res) => {
-  const sessionID = req.session.user_id
+  const sessionID = req.session.user_id;
   const myURLs = urlsForUser(urlDatabase, sessionID);
   
   // If NOT logged in, display a 404 error.
@@ -62,10 +61,10 @@ app.get('/urls', (req, res) => {
   } else {
     
     // If logged in, display urls_index.ejs
-    return res.render('urls_index', { 
+    return res.render('urls_index', {
       user: users[sessionID]['email'],
       urls: myURLs,
-     });
+    });
   }
 });
 
@@ -116,7 +115,7 @@ app.get('/u/:id', (req, res) => {
 
 // POST /urls
 app.post('/urls', (req, res) => {
-  const sessionID = req.session.user_id
+  const sessionID = req.session.user_id;
   
   // If NOT logged in, return a 403 error.
   if (!sessionID) {
@@ -139,7 +138,7 @@ app.post('/urls', (req, res) => {
 
 // POST /urls/:id
 app.post('/urls/:id', (req, res) => {
-  const sessionID = req.session.user_id
+  const sessionID = req.session.user_id;
 
   // If NOT logged in, display a 403 error.
   if (!sessionID) {
@@ -163,7 +162,7 @@ app.post('/urls/:id', (req, res) => {
 
 // POST /urls/:id/delete
 app.post('/urls/:id/delete', (req, res) => {
-  const sessionID = req.session.user_id
+  const sessionID = req.session.user_id;
   
   // If NOT logged in, display a 403 error.
   if (!sessionID) {
